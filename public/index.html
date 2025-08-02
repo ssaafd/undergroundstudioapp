@@ -2,7 +2,17 @@
 <button onclick="generateMusic()">Générer Dub</button>
 <pre id="result"></pre>
 <html lang="en">
-<head>
+<head><button onclick="generate()">🎶 Générer une musique Suno</button>
+<script>
+  async function generate() {
+    const res = await fetch("/api/generateMusic", {
+      method: "POST"
+    });
+    const data = await res.json();
+    console.log("🎧 Réponse Suno :", data);
+    alert("Demande envoyée à Suno ! (Regarde la console)");
+  }
+</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎶 Underground Studio Music</title>
