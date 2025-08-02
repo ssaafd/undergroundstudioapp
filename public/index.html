@@ -92,7 +92,7 @@
 
     async function loadMusicList() {
       try {
-        const res = await fetch('/music-data.json'); // 🔥 CORRIGÉ ICI
+        const res = await fetch('/music-data.json'); // 👈 Corrigé ici
         const tracks = await res.json();
 
         if (!Array.isArray(tracks) || tracks.length === 0) {
