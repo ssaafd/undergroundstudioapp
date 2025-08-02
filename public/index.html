@@ -95,3 +95,44 @@
     alert("Track lancé : " + (data.data?.taskId || "erreur"));
   }
 </script>
+<h2>🎧 Dernières musiques générées</h2>
+<div id="music-list">Chargement en cours...</div>
+
+<script>
+  async function loadMusicList() {
+    try {
+      const res = await fetch('/data-music.json');
+      const tracks = await res.json();
+
+      if (!Array.isArray(tracks) || tracks.length === 0) {
+        document.getElementById('music-list').innerHTML = 'Aucune musique trouvée.';
+        return;
+      }
+
+      const listHtml = tracks.map((track, index) => {
+        const title = track.title || `Track ${index + 1}`;
+        const audioUrl = track.audio_url || track.audioUrl || ''; // Sécurité
+        const image = track.image_url || track.imageUrl || ''; // Image si dispo
+
+        return `
+          <div style="margin-bottom: 20px;">
+            <strong>${title}</strong><br/>
+            ${image ? `<img src="${image}" alt="Cover" style="width:100px;border-radius:8px;margin:5px 0;">` : ''}
+            <audio controls style="width: 100%;">
+              <source src="${audioUrl}" type="audio/mpeg">
+              Votre navigateur ne supporte pas l'audio.
+            </audio>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('music-list').innerHTML = listHtml;
+    } catch (err) {
+      console.error('Erreur chargement:', err);
+      document.getElementById('music-list').innerText = "Erreur lors du chargement.";
+    }
+  }
+
+  // Auto load au démarrage
+  window.addEventListener('DOMContentLoaded', loadMusicList);
+</script>
