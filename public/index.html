@@ -95,7 +95,30 @@
     const res = await fetch("/api/generate", { method: "POST" });
     const data = await res.json();
     alert("Track lancé : " + (data.data?.taskId || "erreur"));
-  }
+  }<script>
+async function generateMusic() {
+  const response = await fetch('https://api.sunoapi.org/api/v1/generate', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer a71b9a537cc3a41a9f3623ffd3c624e2',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      prompt: "Deep dub reggae instrumental for meditation",
+      style: "Dub, deep bass, spiritual",
+      title: "Zion Dub Meditation",
+      customMode: true,
+      instrumental: true,
+      model: "V4_5",
+      callBackUrl: "https://undstudioapp.vercel.app/api/sunoCallback"
+    })
+  });
+
+  const data = await response.json();
+  console.log('Suno API response:', data);
+}
+</script>
+<button onclick="generateMusic()">Test Suno</button>
 </script>
 <h2>🎧 Dernières musiques générées</h2>
 <div id="music-list">Chargement en cours...</div>
