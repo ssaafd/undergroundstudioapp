@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎶 Underground Studio Music</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #00ffd5;
+    }
+    .track {
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem auto;
+      max-width: 600px;
+      background: #1c1c1c;
+    }
+    .track img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    audio {
+      width: 100%;
+      margin-top: 1rem;
+    }
+    .info {
+      margin: 0.5rem 0;
+    }
+    .download-btn {
+      background: #00ffd5;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    .download-btn:hover {
+      background: #00bfa1;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎶 Underground Studio – New Drops</h1>
+  <div id="tracks-container">Loading...</div>
+
+  <script>
+    async function loadTracks() {
+      try {
+        const res = await fetch('/music-data.json');
+        const data = await res.json();
+
+        const container = document.getElementById('tracks-container');
+        container.innerHTML = '';
+
+        data.reverse().forEach(track => {
+          const div = document.createElement('div');
+          div.className = 'track';
+
+          div.innerHTML = `
+            <img src="${track.image_url}" alt="${track.title}" />
+            <div class="info"><strong>${track.title}</strong></div>
+            <div class="info">${track.tags || ''}</div>
+            <audio controls src="${track.audio_url}"></audio>
+            <a href="${track.audio_url}" download>
+              <button class="download-btn">⬇️ Download</button>
+            </a>
+          `;
+          container.appendChild(div);
+        });
+      } catch (e) {
+        document.getElementById('tracks-container').innerText = 'Erreur lors du chargement.';
+        console.error('Erreur:', e);
+      }
+    }
+
+    loadTracks();
+  </script>
+</body>
+</html>
