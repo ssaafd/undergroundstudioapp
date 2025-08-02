@@ -1,18 +1,6 @@
-<!DOCTYPE html><!-- BOUTON DE TEST API SUNO -->
-<button onclick="generateMusic()">Générer Dub</button>
-<pre id="result"></pre>
+<!DOCTYPE html>
 <html lang="en">
-<head><button onclick="generate()">🎶 Générer une musique Suno</button>
-<script>
-  async function generate() {
-    const res = await fetch("/api/generateMusic", {
-      method: "POST"
-    });
-    const data = await res.json();
-    console.log("🎧 Réponse Suno :", data);
-    alert("Demande envoyée à Suno ! (Regarde la console)");
-  }
-</script>
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎶 Underground Studio Music</title>
@@ -60,136 +48,86 @@
     .download-btn:hover {
       background: #00bfa1;
     }
+    .center {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
   </style>
 </head>
 <body>
   <h1>🎶 Underground Studio – New Drops</h1>
-  <div id="tracks-container">Loading...</div>
+
+  <div class="center">
+    <button onclick="generateMusic()">🎧 Générer une musique Suno</button>
+  </div>
+
+  <pre id="result" style="white-space: pre-wrap;"></pre>
+
+  <h2>🎧 Dernières musiques générées</h2>
+  <div id="music-list">Chargement en cours...</div>
 
   <script>
-    async function loadTracks() {
+    async function generateMusic() {
+      const response = await fetch("https://api.sunoapi.org/api/v1/generate", {
+        method: "POST",
+        headers: {
+          "Authorization": "Bearer a71b9a537cc3a41a9f3623ffd3c624e2",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          prompt: "Deep dub reggae instrumental for meditation",
+          style: "Dub, deep bass, spiritual",
+          title: "Zion Dub Meditation",
+          customMode: true,
+          instrumental: true,
+          model: "V4_5",
+          callBackUrl: "https://undstudioapp.vercel.app/api/sunoCallback"
+        })
+      });
+
+      const data = await response.json();
+      console.log('🎧 Réponse Suno :', data);
+      document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function loadMusicList() {
       try {
-        const res = await fetch('/music-data.json');
-        const data = await res.json();
+        const res = await fetch('/data-music.json');
+        const tracks = await res.json();
 
-        const container = document.getElementById('tracks-container');
-        container.innerHTML = '';
+        if (!Array.isArray(tracks) || tracks.length === 0) {
+          document.getElementById('music-list').innerHTML = 'Aucune musique trouvée.';
+          return;
+        }
 
-        data.reverse().forEach(track => {
-          const div = document.createElement('div');
-          div.className = 'track';
+        const listHtml = tracks.reverse().map((track, index) => {
+          const title = track.title || `Track ${index + 1}`;
+          const audioUrl = track.audio_url || track.audioUrl || '';
+          const image = track.image_url || track.imageUrl || '';
 
-          div.innerHTML = `
-            <img src="${track.image_url}" alt="${track.title}" />
-            <div class="info"><strong>${track.title}</strong></div>
-            <div class="info">${track.tags || ''}</div>
-            <audio controls src="${track.audio_url}"></audio>
-            <a href="${track.audio_url}" download>
-              <button class="download-btn">⬇️ Download</button>
-            </a>
+          return `
+            <div class="track">
+              ${image ? `<img src="${image}" alt="Cover">` : ''}
+              <div class="info"><strong>${title}</strong></div>
+              <audio controls>
+                <source src="${audioUrl}" type="audio/mpeg">
+                Votre navigateur ne supporte pas l'audio.
+              </audio>
+              <a href="${audioUrl}" download>
+                <button class="download-btn">⬇️ Download</button>
+              </a>
+            </div>
           `;
-          container.appendChild(div);
-        });
-      } catch (e) {
-        document.getElementById('tracks-container').innerText = 'Erreur lors du chargement.';
-        console.error('Erreur:', e);
+        }).join('');
+
+        document.getElementById('music-list').innerHTML = listHtml;
+      } catch (err) {
+        console.error('Erreur chargement:', err);
+        document.getElementById('music-list').innerText = "Erreur lors du chargement.";
       }
     }
 
-    loadTracks();
+    window.addEventListener('DOMContentLoaded', loadMusicList);
   </script>
 </body>
-</html><button onclick="generateSong()">🎶 Générer musique Suno</button>
-<script>
-  async function generateSong() {
-    const res = await fetch("/api/generate", { method: "POST" });
-    const data = await res.json();
-    alert("Track lancé : " + (data.data?.taskId || "erreur"));
-  }<script>
-async function generateMusic() {
-  const response = await fetch('https://api.sunoapi.org/api/v1/generate', {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Bearer a71b9a537cc3a41a9f3623ffd3c624e2',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      prompt: "Deep dub reggae instrumental for meditation",
-      style: "Dub, deep bass, spiritual",
-      title: "Zion Dub Meditation",
-      customMode: true,
-      instrumental: true,
-      model: "V4_5",
-      callBackUrl: "https://undstudioapp.vercel.app/api/sunoCallback"
-    })
-  });
-
-  const data = await response.json();
-  console.log('Suno API response:', data);
-}
-</script>
-<button onclick="generateMusic()">Test Suno</button>
-</script>
-<h2>🎧 Dernières musiques générées</h2>
-<div id="music-list">Chargement en cours...</div>
-
-<script>
-  async function loadMusicList() {
-    try {
-      const res = await fetch('/data-music.json');
-      const tracks = await res.json();
-
-      if (!Array.isArray(tracks) || tracks.length === 0) {
-        document.getElementById('music-list').innerHTML = 'Aucune musique trouvée.';
-        return;
-      }
-
-      const listHtml = tracks.map((track, index) => {
-        const title = track.title || `Track ${index + 1}`;
-        const audioUrl = track.audio_url || track.audioUrl || ''; // Sécurité
-        const image = track.image_url || track.imageUrl || ''; // Image si dispo
-
-        return `
-          <div style="margin-bottom: 20px;">
-            <strong>${title}</strong><br/>
-            ${image ? `<img src="${image}" alt="Cover" style="width:100px;border-radius:8px;margin:5px 0;">` : ''}
-            <audio controls style="width: 100%;">
-              <source src="${audioUrl}" type="audio/mpeg">
-              Votre navigateur ne supporte pas l'audio.
-            </audio>
-          </div>
-        `;
-      }).join('');
-
-      document.getElementById('music-list').innerHTML = listHtml;
-    } catch (err) {
-      console.error('Erreur chargement:', err);
-      document.getElementById('music-list').innerText = "Erreur lors du chargement.";
-    }
-  }
-
-  // Auto load au démarrage
-  window.addEventListener('DOMContentLoaded', loadMusicList);
-</script><script>
-  async function generateMusic() {
-    const response = await fetch("https://api.sunoapi.org/api/v1/generate", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer a71b9a537cc3a41a9f3623ffd3c624e2",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        prompt: "Deep dub reggae instrumental for meditation",
-        style: "Dub, deep bass, spiritual",
-        title: "Zion Dub Meditation",
-        customMode: true,
-        instrumental: true,
-        model: "V4_5",
-        callBackUrl: "https://undstudioapp.vercel.app/api/sunoCallback"
-      })
-    });
-
-    const data = await response.json();
-    document.getElementById("result").textContent = JSON.stringify(data, null, 2);
-  }
-</script>
+</html>
