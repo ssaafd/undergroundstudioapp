@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/track/:trackId",
+      "destination": "/api/streamAudio?trackId=:trackId"
+    }
+  ]
+}
