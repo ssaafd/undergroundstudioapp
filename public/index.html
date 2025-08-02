@@ -87,4 +87,11 @@
     loadTracks();
   </script>
 </body>
-</html>
+</html><button onclick="generateSong()">🎶 Générer musique Suno</button>
+<script>
+  async function generateSong() {
+    const res = await fetch("/api/generate", { method: "POST" });
+    const data = await res.json();
+    alert("Track lancé : " + (data.data?.taskId || "erreur"));
+  }
+</script>
