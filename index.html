@@ -1,14 +1,80 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Audio Test</title>
+  <title>Test de stream audio Suno</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #status {
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    #error {
+      color: red;
+    }
+  </style>
 </head>
 <body>
-  <h1>Test de stream audio Suno</h1>
-  <audio controls autoplay>
-    <source src="/api/streamAudio?trackId=688e23d03f2a8ec8d86cbe3c" type="audio/mpeg">
-    Ton navigateur ne supporte pas la balise audio.
-  </audio>
+
+<h2>🎵 Test de stream audio Suno</h2>
+
+<label>Track ID :
+  <input type="text" id="trackId" value="688e23d03f2a8ec8d86cbe3c" style="width: 300px;">
+</label>
+<button onclick="startCheck()">▶️ Charger</button>
+
+<div id="status">En attente…</div>
+<div id="error"></div>
+<audio id="player" controls style="display:none;"></audio>
+
+<script>
+async function startCheck() {
+  const trackId = document.getElementById("trackId").value;
+  const player = document.getElementById("player");
+  const status = document.getElementById("status");
+  const error = document.getElementById("error");
+
+  status.textContent = "🔄 Vérification du fichier audio...";
+  error.textContent = "";
+  player.style.display = "none";
+  player.src = "";
+
+  const checkUrl = `/api/streamAudio?trackId=${trackId}`;
+
+  let attempts = 0;
+  const maxAttempts = 12;
+
+  async function poll() {
+    attempts++;
+    try {
+      const res = await fetch(checkUrl, { method: "HEAD", redirect: "manual" });
+      if (res.status === 302) {
+        const mp3Url = res.headers.get("Location");
+        status.textContent = "✅ Audio prêt !";
+        player.src = mp3Url;
+        player.style.display = "block";
+        player.play();
+        return;
+      } else {
+        status.textContent = `🕒 Tentative ${attempts}/${maxAttempts} – Audio non prêt...`;
+      }
+    } catch (err) {
+      error.textContent = "Erreur réseau : " + err.message;
+    }
+
+    if (attempts < maxAttempts) {
+      setTimeout(poll, 5000);
+    } else {
+      status.textContent = "❌ Audio non disponible après plusieurs tentatives.";
+    }
+  }
+
+  poll();
+}
+</script>
+
 </body>
 </html>
