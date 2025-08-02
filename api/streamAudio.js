@@ -1,37 +1,50 @@
 export default async function handler(req, res) {
   const { trackId } = req.query;
+
   if (!trackId) {
-    return res.status(400).json({ error: "Missing trackId" });
+    return res.status(400).json({ error: 'Track ID manquant' });
   }
 
-  const apiKey = process.env.SUNO_API_KEY;
-  const maxAttempts = 6;
-  let attempt = 0;
-  let taskData = null;
+  const SUNO_API_URL = `https://studio-api.suno.ai/api/v1/song/${trackId}`;
+  const MAX_RETRIES = 12;
+  const RETRY_DELAY = 10000; // 10 sec
 
-  while (attempt < maxAttempts) {
+  for (let i = 0; i < MAX_RETRIES; i++) {
     try {
-      const response = await fetch(`https://studio-api.suno.ai/api/tasks/${trackId}`, {
+      const response = await fetch(SUNO_API_URL, {
         headers: {
-          "Authorization": `Bearer ${apiKey}`
-        }
+          'x-api-key': process.env.SUNO_API_KEY,
+        },
       });
 
-      const result = await response.json();
-      taskData = result?.audio_url || result?.audio_url_with_metadata;
+      const contentType = response.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        const html = await response.text();
+        return res.status(502).json({
+          error: 'Suno API returned non-JSON',
+          detail: html.slice(0, 300),
+        });
+      }
 
-      if (taskData) {
-        const mp3Url = result.audio_url || result.audio_url_with_metadata;
+      const data = await response.json();
+      const mp3Url = data?.audio_url || data?.audioUrl;
+
+      if (mp3Url) {
         return res.redirect(mp3Url);
+      } else {
+        console.log(`Tentative ${i + 1}/${MAX_RETRIES} – Audio pas prêt`);
+        await new Promise((r) => setTimeout(r, RETRY_DELAY));
       }
     } catch (err) {
-      return res.status(500).json({ error: "Suno API request failed", detail: err.message });
+      console.error('Erreur Suno API :', err);
+      return res.status(500).json({
+        error: 'Suno API request failed',
+        detail: err.message,
+      });
     }
-
-    // Attente 10s avant nouvelle tentative
-    await new Promise(resolve => setTimeout(resolve, 10000));
-    attempt++;
   }
 
-  return res.status(404).json({ error: "MP3 not ready after retries" });
+  return res.status(504).json({
+    error: 'Audio non prêt après plusieurs tentatives',
+  });
 }
