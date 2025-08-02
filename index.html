@@ -1,80 +1,90 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Test de stream audio Suno</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎶 Underground Studio Music</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
+      background: #111;
+      color: #eee;
+      margin: 0;
+      padding: 2rem;
     }
-    #status {
-      margin-bottom: 10px;
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #00ffd5;
+    }
+    .track {
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem auto;
+      max-width: 600px;
+      background: #1c1c1c;
+    }
+    .track img {
+      width: 100%;
+      border-radius: 8px;
+    }
+    audio {
+      width: 100%;
+      margin-top: 1rem;
+    }
+    .info {
+      margin: 0.5rem 0;
+    }
+    .download-btn {
+      background: #00ffd5;
+      border: none;
+      padding: 0.5rem 1rem;
       font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1rem;
     }
-    #error {
-      color: red;
+    .download-btn:hover {
+      background: #00bfa1;
     }
   </style>
 </head>
 <body>
+  <h1>🎶 Underground Studio – New Drops</h1>
+  <div id="tracks-container">Loading...</div>
 
-<h2>🎵 Test de stream audio Suno</h2>
+  <script>
+    async function loadTracks() {
+      try {
+        const res = await fetch('/music-data.json');
+        const data = await res.json();
 
-<label>Track ID :
-  <input type="text" id="trackId" value="688e23d03f2a8ec8d86cbe3c" style="width: 300px;">
-</label>
-<button onclick="startCheck()">▶️ Charger</button>
+        const container = document.getElementById('tracks-container');
+        container.innerHTML = '';
 
-<div id="status">En attente…</div>
-<div id="error"></div>
-<audio id="player" controls style="display:none;"></audio>
+        data.reverse().forEach(track => {
+          const div = document.createElement('div');
+          div.className = 'track';
 
-<script>
-async function startCheck() {
-  const trackId = document.getElementById("trackId").value;
-  const player = document.getElementById("player");
-  const status = document.getElementById("status");
-  const error = document.getElementById("error");
-
-  status.textContent = "🔄 Vérification du fichier audio...";
-  error.textContent = "";
-  player.style.display = "none";
-  player.src = "";
-
-  const checkUrl = `/api/streamAudio?trackId=${trackId}`;
-
-  let attempts = 0;
-  const maxAttempts = 12;
-
-  async function poll() {
-    attempts++;
-    try {
-      const res = await fetch(checkUrl, { method: "HEAD", redirect: "manual" });
-      if (res.status === 302) {
-        const mp3Url = res.headers.get("Location");
-        status.textContent = "✅ Audio prêt !";
-        player.src = mp3Url;
-        player.style.display = "block";
-        player.play();
-        return;
-      } else {
-        status.textContent = `🕒 Tentative ${attempts}/${maxAttempts} – Audio non prêt...`;
+          div.innerHTML = `
+            <img src="${track.image_url}" alt="${track.title}" />
+            <div class="info"><strong>${track.title}</strong></div>
+            <div class="info">${track.tags || ''}</div>
+            <audio controls src="${track.audio_url}"></audio>
+            <a href="${track.audio_url}" download>
+              <button class="download-btn">⬇️ Download</button>
+            </a>
+          `;
+          container.appendChild(div);
+        });
+      } catch (e) {
+        document.getElementById('tracks-container').innerText = 'Erreur lors du chargement.';
+        console.error('Erreur:', e);
       }
-    } catch (err) {
-      error.textContent = "Erreur réseau : " + err.message;
     }
 
-    if (attempts < maxAttempts) {
-      setTimeout(poll, 5000);
-    } else {
-      status.textContent = "❌ Audio non disponible après plusieurs tentatives.";
-    }
-  }
-
-  poll();
-}
-</script>
-
+    loadTracks();
+  </script>
 </body>
 </html>
